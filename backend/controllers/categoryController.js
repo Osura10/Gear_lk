@@ -6,7 +6,12 @@ const Listing = require('../models/Listing');
 // @access  Private (Admin)
 exports.createCategory = async (req, res) => {
   try {
-    const category = await Category.create(req.body);
+    const categoryData = { ...req.body };
+    if (req.file) {
+      categoryData.icon = req.file.path.replace(/\\/g, '/');
+    }
+
+    const category = await Category.create(categoryData);
     res.status(201).json({ success: true, data: category });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -43,7 +48,12 @@ exports.getCategory = async (req, res) => {
 // @access  Private (Admin)
 exports.updateCategory = async (req, res) => {
   try {
-    const category = await Category.findByIdAndUpdate(req.params.id, req.body, {
+    const updateData = { ...req.body };
+    if (req.file) {
+      updateData.icon = req.file.path.replace(/\\/g, '/');
+    }
+
+    const category = await Category.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true
     });

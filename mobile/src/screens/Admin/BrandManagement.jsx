@@ -9,7 +9,8 @@ import {
   ScrollView, 
   Alert,
   ActivityIndicator,
-  Image
+  Image,
+  Platform
 } from 'react-native';
 import { COLORS } from '../../theme/colors';
 import api, { getImageUrl } from '../../utils/api';
@@ -17,87 +18,110 @@ import CustomInput from '../../components/common/CustomInput';
 import CustomButton from '../../components/common/CustomButton';
 import ImagePickerPreview from '../../components/common/ImagePickerPreview';
 
-const CategoryManagement = () => {
-  const [categories, setCategories] = useState([]);
+const BrandManagement = () => {
+  const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
+  const [editingBrand, setEditingBrand] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    parent: null,
+    country: '',
+    website: '',
     status: 'active',
   });
-  const [icon, setIcon] = useState([]);
+  const [logo, setLogo] = useState([]);
 
   useEffect(() => {
-    fetchCategories();
+    fetchBrands();
   }, []);
 
-  const fetchCategories = async () => {
+  const fetchBrands = async () => {
     try {
-      const res = await api.get('/categories');
-      setCategories(res.data.data);
+      const res = await api.get('/brands');
+      setBrands(res.data.data);
     } catch (err) {
-      Alert.alert('Error', 'Failed to fetch categories');
+      Alert.alert('Error', 'Failed to fetch brands');
     } finally {
       setLoading(false);
     }
   };
 
   const handleSave = async () => {
-    if (!formData.name) return Alert.alert('Error', 'Category name is required');
+    if (!formData.name) return Alert.alert('Error', 'Brand name is required');
     
     setLoading(true);
     try {
-      const payload = { ...formData, icon: icon[0] };
-      if (editingCategory) {
-        await api.put(`/categories/${editingCategory._id}`, payload);
-        Alert.alert('Success', 'Category updated');
+      const data = new FormData();
+      
+      // Append text fields
+      Object.keys(formData).forEach(key => {
+        if (formData[key]) data.append(key, formData[key]);
+      });
+
+      // Append logo if it's a new file
+      if (logo.length > 0 && (logo[0].startsWith('file') || logo[0].startsWith('content'))) {
+        const uri = logo[0];
+        const filename = uri.split('/').pop();
+        let ext = 'jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        if (match) ext = match[1];
+        
+        data.append('logo', {
+          uri: Platform.OS === 'android' ? uri : uri.replace('file://', ''),
+          name: match ? filename : `${filename}.${ext}`,
+          type: `image/${ext}`
+        });
+      }
+
+      if (editingBrand) {
+        await api.put(`/brands/${editingBrand._id}`, data);
+        Alert.alert('Success', 'Brand updated');
       } else {
-        await api.post('/categories', payload);
-        Alert.alert('Success', 'Category created');
+        await api.post('/brands', data);
+        Alert.alert('Success', 'Brand created');
       }
       setModalVisible(false);
-      fetchCategories();
+      fetchBrands();
       resetForm();
     } catch (err) {
-      Alert.alert('Error', 'Failed to save category');
+      console.error('Brand save error:', err.response?.data || err.message);
+      Alert.alert('Error', err.response?.data?.message || 'Failed to save brand');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = (id) => {
-    Alert.alert('Delete Category', 'Are you sure? This will affect subcategories.', [
+    Alert.alert('Delete Brand', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: async () => {
         try {
-          await api.delete(`/categories/${id}`);
-          fetchCategories();
+          await api.delete(`/brands/${id}`);
+          fetchBrands();
         } catch (err) {
-          Alert.alert('Error', 'Failed to delete category');
+          Alert.alert('Error', 'Failed to delete brand');
         }
       }}
     ]);
   };
 
   const resetForm = () => {
-    setFormData({ name: '', description: '', parent: null, status: 'active' });
-    setIcon([]);
-    setEditingCategory(null);
+    setFormData({ name: '', description: '', country: '', website: '', status: 'active' });
+    setLogo([]);
+    setEditingBrand(null);
   };
 
-  const renderCategory = ({ item }) => (
+  const renderBrand = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Image source={{ uri: getImageUrl(item.icon) }} style={styles.catIcon} />
-        <View style={styles.catInfo}>
-          <Text style={styles.catName}>{item.name}</Text>
-          <Text style={styles.catDesc} numberOfLines={1}>{item.description || 'No description'}</Text>
+        <Image source={{ uri: getImageUrl(item.logoUrl) }} style={styles.brandLogo} />
+        <View style={styles.brandInfo}>
+          <Text style={styles.brandName}>{item.name}</Text>
+          <Text style={styles.brandCountry}>🏳️ {item.country || 'N/A'}</Text>
         </View>
         <View style={styles.actions}>
-          <TouchableOpacity onPress={() => { setEditingCategory(item); setFormData(item); setIcon(item.icon ? [item.icon] : []); setModalVisible(true); }}>
+          <TouchableOpacity onPress={() => { setEditingBrand(item); setFormData(item); setLogo(item.logoUrl ? [item.logoUrl] : []); setModalVisible(true); }}>
             <Text style={styles.editEmoji}>✏️</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => handleDelete(item._id)}>
@@ -111,16 +135,16 @@ const CategoryManagement = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Categories</Text>
+        <Text style={styles.title}>Brands</Text>
         <TouchableOpacity style={styles.addBtn} onPress={() => { resetForm(); setModalVisible(true); }}>
-          <Text style={styles.addBtnText}>+ New Category</Text>
+          <Text style={styles.addBtnText}>+ Add Brand</Text>
         </TouchableOpacity>
       </View>
 
       {loading ? <ActivityIndicator size="large" color={COLORS.secondary} /> : (
         <FlatList
-          data={categories}
-          renderItem={renderCategory}
+          data={brands}
+          renderItem={renderBrand}
           keyExtractor={item => item._id}
           contentContainerStyle={styles.list}
         />
@@ -129,11 +153,15 @@ const CategoryManagement = () => {
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{editingCategory ? 'Edit Category' : 'New Category'}</Text>
+            <Text style={styles.modalTitle}>{editingBrand ? 'Edit Brand' : 'New Brand'}</Text>
             <ScrollView>
-              <CustomInput label="Name" value={formData.name} onChangeText={t => setFormData({...formData, name: t})} />
+              <CustomInput label="Brand Name" value={formData.name} onChangeText={t => setFormData({...formData, name: t})} />
+              <View style={styles.row}>
+                <CustomInput label="Country" value={formData.country} onChangeText={t => setFormData({...formData, country: t})} containerStyle={{ flex: 1, marginRight: 10 }} />
+                <CustomInput label="Website" value={formData.website} onChangeText={t => setFormData({...formData, website: t})} containerStyle={{ flex: 1 }} />
+              </View>
               <CustomInput label="Description" value={formData.description} onChangeText={t => setFormData({...formData, description: t})} multiline />
-              <ImagePickerPreview label="Category Icon" images={icon} onImagesSelected={setIcon} aspect={[1, 1]} />
+              <ImagePickerPreview label="Brand Logo" images={logo} onImagesSelected={setLogo} aspect={[1, 1]} />
               
               <View style={styles.modalButtons}>
                 <CustomButton title="Cancel" type="outline" onPress={() => setModalVisible(false)} style={styles.btn} />
@@ -156,18 +184,19 @@ const styles = StyleSheet.create({
   list: { padding: 20 },
   card: { backgroundColor: COLORS.white, padding: 15, borderRadius: 20, marginBottom: 15, elevation: 3 },
   cardHeader: { flexDirection: 'row', alignItems: 'center' },
-  catIcon: { width: 40, height: 40, borderRadius: 10, backgroundColor: COLORS.background },
-  catInfo: { flex: 1, marginLeft: 15 },
-  catName: { fontSize: 16, fontWeight: 'bold', color: COLORS.primary },
-  catDesc: { fontSize: 12, color: COLORS.gray, marginTop: 2 },
+  brandLogo: { width: 50, height: 50, borderRadius: 10, backgroundColor: COLORS.background, resizeMode: 'contain' },
+  brandInfo: { flex: 1, marginLeft: 15 },
+  brandName: { fontSize: 16, fontWeight: 'bold', color: COLORS.primary },
+  brandCountry: { fontSize: 12, color: COLORS.gray, marginTop: 2 },
   actions: { flexDirection: 'row' },
   editEmoji: { fontSize: 18, marginRight: 15 },
   deleteEmoji: { fontSize: 18 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: COLORS.white, borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 25, maxHeight: '80%' },
   modalTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.primary, marginBottom: 20 },
+  row: { flexDirection: 'row' },
   modalButtons: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
   btn: { width: '48%' }
 });
 
-export default CategoryManagement;
+export default BrandManagement;
