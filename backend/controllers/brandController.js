@@ -6,7 +6,13 @@ const Listing = require('../models/Listing');
 // @access  Private (Admin)
 exports.createBrand = async (req, res) => {
   try {
-    const brand = await Brand.create(req.body);
+    const brandData = { ...req.body };
+    
+    if (req.file) {
+      brandData.logoUrl = req.file.path.replace(/\\/g, '/');
+    }
+
+    const brand = await Brand.create(brandData);
     res.status(201).json({ success: true, data: brand });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -43,7 +49,13 @@ exports.getBrand = async (req, res) => {
 // @access  Private (Admin)
 exports.updateBrand = async (req, res) => {
   try {
-    const brand = await Brand.findByIdAndUpdate(req.params.id, req.body, {
+    const updateData = { ...req.body };
+    
+    if (req.file) {
+      updateData.logoUrl = req.file.path.replace(/\\/g, '/');
+    }
+
+    const brand = await Brand.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true
     });

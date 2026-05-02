@@ -9,7 +9,8 @@ import {
   ScrollView, 
   Alert,
   ActivityIndicator,
-  Image
+  Image,
+  Platform
 } from 'react-native';
 import { COLORS } from '../../theme/colors';
 import api, { getImageUrl } from '../../utils/api';
@@ -51,19 +52,41 @@ const BrandManagement = () => {
     
     setLoading(true);
     try {
-      const payload = { ...formData, logo: logo[0] };
+      const data = new FormData();
+      
+      // Append text fields
+      Object.keys(formData).forEach(key => {
+        if (formData[key]) data.append(key, formData[key]);
+      });
+
+      // Append logo if it's a new file
+      if (logo.length > 0 && (logo[0].startsWith('file') || logo[0].startsWith('content'))) {
+        const uri = logo[0];
+        const filename = uri.split('/').pop();
+        let ext = 'jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        if (match) ext = match[1];
+        
+        data.append('logo', {
+          uri: Platform.OS === 'android' ? uri : uri.replace('file://', ''),
+          name: match ? filename : `${filename}.${ext}`,
+          type: `image/${ext}`
+        });
+      }
+
       if (editingBrand) {
-        await api.put(`/brands/${editingBrand._id}`, payload);
+        await api.put(`/brands/${editingBrand._id}`, data);
         Alert.alert('Success', 'Brand updated');
       } else {
-        await api.post('/brands', payload);
+        await api.post('/brands', data);
         Alert.alert('Success', 'Brand created');
       }
       setModalVisible(false);
       fetchBrands();
       resetForm();
     } catch (err) {
-      Alert.alert('Error', 'Failed to save brand');
+      console.error('Brand save error:', err.response?.data || err.message);
+      Alert.alert('Error', err.response?.data?.message || 'Failed to save brand');
     } finally {
       setLoading(false);
     }
@@ -92,13 +115,13 @@ const BrandManagement = () => {
   const renderBrand = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Image source={{ uri: getImageUrl(item.logo) }} style={styles.brandLogo} />
+        <Image source={{ uri: getImageUrl(item.logoUrl) }} style={styles.brandLogo} />
         <View style={styles.brandInfo}>
           <Text style={styles.brandName}>{item.name}</Text>
           <Text style={styles.brandCountry}>🏳️ {item.country || 'N/A'}</Text>
         </View>
         <View style={styles.actions}>
-          <TouchableOpacity onPress={() => { setEditingBrand(item); setFormData(item); setLogo(item.logo ? [item.logo] : []); setModalVisible(true); }}>
+          <TouchableOpacity onPress={() => { setEditingBrand(item); setFormData(item); setLogo(item.logoUrl ? [item.logoUrl] : []); setModalVisible(true); }}>
             <Text style={styles.editEmoji}>✏️</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => handleDelete(item._id)}>

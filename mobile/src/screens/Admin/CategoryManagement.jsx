@@ -9,7 +9,8 @@ import {
   ScrollView, 
   Alert,
   ActivityIndicator,
-  Image
+  Image,
+  Platform
 } from 'react-native';
 import { COLORS } from '../../theme/colors';
 import api, { getImageUrl } from '../../utils/api';
@@ -50,19 +51,43 @@ const CategoryManagement = () => {
     
     setLoading(true);
     try {
-      const payload = { ...formData, icon: icon[0] };
+      const data = new FormData();
+      
+      // Append text fields
+      Object.keys(formData).forEach(key => {
+        if (formData[key] !== null && formData[key] !== undefined) {
+          data.append(key, formData[key]);
+        }
+      });
+
+      // Append icon if it's a new file
+      if (icon.length > 0 && (icon[0].startsWith('file') || icon[0].startsWith('content'))) {
+        const uri = icon[0];
+        const filename = uri.split('/').pop();
+        let ext = 'jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        if (match) ext = match[1];
+        
+        data.append('icon', {
+          uri: Platform.OS === 'android' ? uri : uri.replace('file://', ''),
+          name: match ? filename : `${filename}.${ext}`,
+          type: `image/${ext}`
+        });
+      }
+
       if (editingCategory) {
-        await api.put(`/categories/${editingCategory._id}`, payload);
+        await api.put(`/categories/${editingCategory._id}`, data);
         Alert.alert('Success', 'Category updated');
       } else {
-        await api.post('/categories', payload);
+        await api.post('/categories', data);
         Alert.alert('Success', 'Category created');
       }
       setModalVisible(false);
       fetchCategories();
       resetForm();
     } catch (err) {
-      Alert.alert('Error', 'Failed to save category');
+      console.error('Category save error:', err.response?.data || err.message);
+      Alert.alert('Error', err.response?.data?.message || 'Failed to save category');
     } finally {
       setLoading(false);
     }
