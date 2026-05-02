@@ -45,8 +45,38 @@ const seedData = async () => {
     await Listing.deleteMany({});
     console.log('Existing listings cleared');
 
-    // 4. Create Default Listings
+    // 4. Create Default Listings (including official and user's previous data)
     const defaultListings = [
+      {
+        seller: seller._id,
+        store: store._id,
+        title: 'Samick Greg Bennett Electric Guitar',
+        brand: 'Samick',
+        category: 'Guitars',
+        model: 'Greg Bennett',
+        condition: 'Used',
+        price: 45000,
+        description: 'Excellent condition electric guitar. Great for beginners and intermediate players.',
+        location: 'Kotte',
+        district: 'Colombo',
+        status: 'active',
+        photos: ['uploads/listings/photos-1777722981934.jpg', 'uploads/listings/photos-1777722981952.jpg']
+      },
+      {
+        seller: seller._id,
+        store: store._id,
+        title: 'Yamaha F310 Acoustic Guitar',
+        brand: 'Yamaha',
+        category: 'Guitars',
+        model: 'F310',
+        condition: 'Like New',
+        price: 32000,
+        description: 'The perfect acoustic guitar for anyone looking for quality and affordability.',
+        location: 'Mount Lavinia',
+        district: 'Colombo',
+        status: 'active',
+        photos: ['uploads/listings/photos-1777722981965.jpg']
+      },
       {
         seller: seller._id,
         store: store._id,
@@ -125,7 +155,7 @@ const seedData = async () => {
     ];
 
     await Listing.insertMany(defaultListings);
-    console.log('5 Default Listings added successfully!');
+    console.log(`${defaultListings.length} Default Listings added successfully!`);
     
     process.exit();
   } catch (err) {
