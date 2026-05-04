@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, RefreshControl } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, RefreshControl, Image } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import apiService from '../../utils/apiService';
 import { COLORS } from '../../theme/colors';
 import { AuthContext } from '../../context/AuthContext';
@@ -11,9 +12,11 @@ const OrdersScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState(user.role === 'seller' ? 'selling' : 'buying');
 
-  useEffect(() => {
-    fetchOrders();
-  }, [activeTab]);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchOrders();
+    }, [activeTab])
+  );
 
   const fetchOrders = async () => {
     try {
@@ -56,23 +59,46 @@ const OrdersScreen = () => {
   const renderOrder = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.listingTitle}>{item.listing.title}</Text>
+        <Text style={styles.listingTitle}>{item.listing?.title || 'Gear Listing'}</Text>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
           <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>{item.status.toUpperCase()}</Text>
         </View>
       </View>
 
-      <Text style={styles.price}>Rs. {item.totalPrice.toLocaleString()}</Text>
+      <Text style={styles.price}>Rs. {item.totalPrice?.toLocaleString() || '0'}</Text>
       
       <View style={styles.detailsRow}>
         <Text style={styles.label}>{activeTab === 'buying' ? 'Seller:' : 'Buyer:'}</Text>
-        <Text style={styles.value}>{activeTab === 'buying' ? item.seller.name : item.buyer.name}</Text>
+        <Text style={styles.value}>{activeTab === 'buying' ? item.seller?.name : item.buyer?.name}</Text>
       </View>
 
-      <View style={styles.messageBox}>
-        <Text style={styles.messageLabel}>Message:</Text>
-        <Text style={styles.messageText}>"{item.message}"</Text>
-      </View>
+      {item.note && (
+        <View style={styles.noteBox}>
+          <Text style={styles.noteLabel}>Request Note:</Text>
+          <Text style={styles.noteText}>{item.note}</Text>
+        </View>
+      )}
+
+      {(item.voucherCode || item.voucherImage) && (
+        <View style={styles.voucherBox}>
+          <Text style={styles.voucherBoxTitle}>🎟 Voucher Details</Text>
+          {item.voucherCode && (
+            <View style={styles.voucherCodeRow}>
+              <Text style={styles.voucherLabel}>Code:</Text>
+              <Text style={styles.voucherCode}>{item.voucherCode}</Text>
+            </View>
+          )}
+          {item.voucherImage && (
+            <TouchableOpacity 
+              style={styles.voucherImageWrapper}
+              onPress={() => Alert.alert('Voucher Proof', 'Viewing large image coming soon')}
+            >
+              <Image source={{ uri: apiService.getImageUrl(item.voucherImage) }} style={styles.voucherImage} />
+              <Text style={styles.voucherImageHint}>Tap to view full proof</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
       
       {activeTab === 'selling' && item.status === 'pending' && (
         <View style={styles.actions}>
@@ -161,6 +187,26 @@ const styles = StyleSheet.create({
   messageBox: { backgroundColor: COLORS.background, padding: 12, borderRadius: 10, marginVertical: 10 },
   messageLabel: { fontSize: 10, color: COLORS.gray, marginBottom: 4 },
   messageText: { fontSize: 13, color: COLORS.primary, fontStyle: 'italic' },
+  noteBox: {
+    backgroundColor: COLORS.background,
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.primary,
+  },
+  noteLabel: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: COLORS.gray,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  noteText: {
+    fontSize: 13,
+    color: COLORS.primary,
+    lineHeight: 18,
+  },
   actions: { flexDirection: 'row', marginTop: 15 },
   actionBtn: { flex: 1, height: 45, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   acceptBtn: { backgroundColor: COLORS.secondary, marginLeft: 10 },
@@ -172,6 +218,51 @@ const styles = StyleSheet.create({
   empty: { marginTop: 100, alignItems: 'center' },
   emptyIcon: { fontSize: 50, marginBottom: 10 },
   emptyText: { color: COLORS.gray },
+  voucherBox: {
+    backgroundColor: COLORS.secondary + '10',
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: COLORS.secondary + '30',
+    borderStyle: 'dashed',
+  },
+  voucherBoxTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginBottom: 8,
+  },
+  voucherCodeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  voucherLabel: {
+    fontSize: 12,
+    color: COLORS.gray,
+    marginRight: 10,
+  },
+  voucherCode: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    letterSpacing: 1,
+  },
+  voucherImageWrapper: {
+    alignItems: 'center',
+  },
+  voucherImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: 10,
+    backgroundColor: COLORS.background,
+  },
+  voucherImageHint: {
+    fontSize: 10,
+    color: COLORS.gray,
+    marginTop: 5,
+  },
 });
 
 export default OrdersScreen;

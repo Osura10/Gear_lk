@@ -159,7 +159,7 @@ exports.uploadLogo = async (req, res) => {
     
     const store = await Store.findByIdAndUpdate(
       req.params.id, 
-      { logoUrl: `uploads/stores/${req.file.filename}` }, 
+      { logoUrl: req.file.path.replace(/\\/g, '/') }, 
       { new: true }
     );
     res.status(200).json({ success: true, data: store });
@@ -177,7 +177,7 @@ exports.uploadBanner = async (req, res) => {
 
     const store = await Store.findByIdAndUpdate(
       req.params.id, 
-      { bannerUrl: `uploads/stores/${req.file.filename}` }, 
+      { bannerUrl: req.file.path.replace(/\\/g, '/') }, 
       { new: true }
     );
     res.status(200).json({ success: true, data: store });

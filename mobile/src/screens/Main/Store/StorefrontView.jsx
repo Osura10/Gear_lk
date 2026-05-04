@@ -31,7 +31,7 @@ const StorefrontView = ({ route, navigation }) => {
         setStore(res.data.data);
         
         const [listingsRes, reviewsRes] = await Promise.all([
-          api.get(`/listings?seller=${res.data.data.seller}`),
+          api.get(`/listings?seller=${res.data.data.seller._id || res.data.data.seller}`),
           api.get(`/reviews?store=${storeId}`)
         ]);
         
@@ -55,25 +55,38 @@ const StorefrontView = ({ route, navigation }) => {
     );
   }
 
+  const StoreListingCard = ({ item, navigation }) => {
+    const [imageError, setImageError] = useState(false);
+    const imageUrl = getImageUrl(item.photos?.[0]);
+
+    return (
+      <TouchableOpacity 
+        style={styles.listingCard}
+        onPress={() => navigation.navigate('InstrumentDetails', { id: item._id })}
+        activeOpacity={0.9}
+      >
+        <View style={styles.listingImageContainer}>
+          <Image 
+            source={{ uri: imageError ? 'https://via.placeholder.com/300?text=No+Image' : imageUrl }} 
+            style={styles.listingImage} 
+            onError={() => setImageError(true)}
+          />
+          {item.condition && (
+            <View style={styles.conditionBadge}>
+              <Text style={styles.conditionText}>{item.condition}</Text>
+            </View>
+          )}
+        </View>
+        <View style={styles.listingInfo}>
+          <Text style={styles.listingTitle} numberOfLines={2}>{item.title}</Text>
+          <Text style={styles.listingPrice}>Rs. {item.price?.toLocaleString()}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   const renderListing = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.listingCard}
-      onPress={() => navigation.navigate('InstrumentDetails', { id: item._id })}
-      activeOpacity={0.9}
-    >
-      <View style={styles.listingImageContainer}>
-        <Image source={{ uri: getImageUrl(item.images?.[0]) }} style={styles.listingImage} />
-        {item.condition && (
-          <View style={styles.conditionBadge}>
-            <Text style={styles.conditionText}>{item.condition}</Text>
-          </View>
-        )}
-      </View>
-      <View style={styles.listingInfo}>
-        <Text style={styles.listingTitle} numberOfLines={2}>{item.title}</Text>
-        <Text style={styles.listingPrice}>Rs. {item.price.toLocaleString()}</Text>
-      </View>
-    </TouchableOpacity>
+    <StoreListingCard item={item} navigation={navigation} />
   );
 
   const renderReviews = () => (
@@ -144,6 +157,19 @@ const StorefrontView = ({ route, navigation }) => {
     </View>
   );
 
+  const GalleryImage = ({ uri }) => {
+    const [error, setError] = useState(false);
+    return (
+      <View style={styles.galleryImageWrapper}>
+        <Image 
+          source={{ uri: error ? 'https://via.placeholder.com/300?text=Image+Missing' : getImageUrl(uri) }} 
+          style={styles.galleryImage} 
+          onError={() => setError(true)}
+        />
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView stickyHeaderIndices={[1]} showsVerticalScrollIndicator={false}>
@@ -193,9 +219,7 @@ const StorefrontView = ({ route, navigation }) => {
             <Text style={styles.sectionHeading}>Inside the Store</Text>
             <View style={styles.galleryGrid}>
               {store?.gallery?.length > 0 ? store.gallery.map((uri, index) => (
-                <View key={index} style={styles.galleryImageWrapper}>
-                  <Image source={{ uri: getImageUrl(uri) }} style={styles.galleryImage} />
-                </View>
+                <GalleryImage key={index} uri={uri} />
               )) : (
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyIcon}>📸</Text>

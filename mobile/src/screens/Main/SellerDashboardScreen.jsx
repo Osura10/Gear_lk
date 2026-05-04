@@ -9,9 +9,10 @@ const SellerDashboardScreen = ({ navigation }) => {
   const menuItems = [
     { title: 'My Listings', icon: '🎸', screen: 'My Listings' },
     { title: 'List New Gear', icon: '➕', screen: 'Add Listing' },
-    { title: 'Messages', icon: '💬', screen: 'Messages' },
     { title: 'Order Requests', icon: '📋', screen: 'Orders' },
     { title: 'Manage Store', icon: '🏪', screen: 'StoreDashboard' },
+    { title: 'Vouchers', icon: '🎟', screen: 'VoucherManagement' },
+    { title: 'Pricing & Deals', icon: '💰', screen: 'PricingDashboard' },
     { title: 'Categories', icon: '📁', screen: 'CategoryManagement' },
     { title: 'Brands', icon: '🏷️', screen: 'BrandManagement' },
     { title: 'Customer Reviews', icon: '⭐', screen: 'ReviewsDashboard' },

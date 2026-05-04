@@ -29,6 +29,15 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  voucherCode: {
+    type: String,
+  },
+  voucherImage: {
+    type: String,
+  },
+  note: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

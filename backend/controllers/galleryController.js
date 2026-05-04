@@ -19,7 +19,7 @@ exports.uploadGalleryImage = async (req, res) => {
 
     const galleryItem = await StoreGallery.create({
       store: req.params.storeId,
-      imageUrl: `uploads/listings/${req.file.filename}`, // Using existing listings folder for simplicity
+      imageUrl: req.file.path.replace(/\\/g, '/'), // Cloudinary URL
       caption: req.body.caption,
       displayOrder: req.body.displayOrder
     });

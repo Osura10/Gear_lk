@@ -21,8 +21,6 @@ import MyListingsScreen from '../screens/Main/Listings/ListingDashboard';
 import AddListingScreen from '../screens/Main/Listings/ListingFormScreen';
 import OrdersScreen from '../screens/Main/OrdersScreen';
 import CartScreen from '../screens/Main/CartScreen';
-import MessagesScreen from '../screens/Main/MessagesScreen';
-import ChatScreen from '../screens/Main/ChatScreen';
 import BuyerOrdersScreen from '../screens/Main/BuyerOrdersScreen';
 import ProfileScreen from '../screens/Main/ProfileScreen';
 import CategoryManagement from '../screens/Admin/CategoryManagement';
@@ -40,6 +38,7 @@ import StorePolicyManagement from '../screens/Main/Store/StorePolicyManagement';
 import PricingDashboard from '../screens/Main/Store/Pricing/PricingDashboard';
 import PriceDropScreen from '../screens/Main/Store/Pricing/PriceDropScreen';
 import ManageDealScreen from '../screens/Main/Store/Pricing/ManageDealScreen';
+import VoucherManagement from '../screens/Main/Store/VoucherManagement';
 
 const AuthStack = createNativeStackNavigator();
 const MainStack = createNativeStackNavigator();
@@ -57,7 +56,6 @@ const HomeStack = () => (
   <MainStack.Navigator>
     <MainStack.Screen name="Marketplace" component={BuyerHomeScreen} options={{ headerShown: false }} />
     <MainStack.Screen name="InstrumentDetails" component={ListingDetailsScreen} options={{ title: 'Details' }} />
-    <MainStack.Screen name="Chat" component={ChatScreen} options={({ route }) => ({ title: route.params.userName || 'Chat' })} />
     <MainStack.Screen name="EditListing" component={EditListingScreen} options={{ title: 'Edit Listing' }} />
     <MainStack.Screen name="StoreDashboard" component={StoreDashboard} options={{ title: 'Store Management' }} />
     <MainStack.Screen name="StoreProfile" component={StoreProfileForm} options={{ title: 'Store Profile' }} />
@@ -83,8 +81,7 @@ const BuyerNavigator = () => (
   >
     <Tab.Screen name="Home" component={HomeStack} options={{ headerShown: false }} />
     <Tab.Screen name="Cart" component={CartScreen} options={{ title: 'My Cart' }} />
-    <Tab.Screen name="Messages" component={MessagesScreen} options={{ title: 'Messages' }} />
-    <Tab.Screen name="Orders" component={BuyerOrdersScreen} options={{ title: 'Requests' }} />
+    <Tab.Screen name="Orders" component={OrdersScreen} options={{ title: 'Requests' }} />
     <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'My Account' }} />
   </Tab.Navigator>
 );
@@ -101,6 +98,7 @@ const SellerStack = () => (
     <MainStack.Screen name="PricingDashboard" component={PricingDashboard} options={{ title: 'Pricing & Deals' }} />
     <MainStack.Screen name="PriceDrop" component={PriceDropScreen} options={{ title: 'Price Drop' }} />
     <MainStack.Screen name="ManageDeal" component={ManageDealScreen} options={{ title: 'Launch Promotion' }} />
+    <MainStack.Screen name="VoucherManagement" component={VoucherManagement} options={{ headerShown: false }} />
     <MainStack.Screen name="CategoryManagement" component={CategoryManagement} options={{ title: 'Manage Categories' }} />
     <MainStack.Screen name="BrandManagement" component={BrandManagement} options={{ title: 'Manage Brands' }} />
     <MainStack.Screen name="ReviewsDashboard" component={ReviewsDashboard} options={{ title: 'Customer Reviews' }} />
@@ -120,7 +118,6 @@ const SellerNavigator = () => (
     <Tab.Screen name="Dashboard" component={SellerStack} options={{ headerShown: false }} />
     <Tab.Screen name="My Listings" component={MyListingsScreen} options={{ title: 'My Ads' }} />
     <Tab.Screen name="Add Listing" component={AddListingScreen} options={{ title: 'Post Ad' }} />
-    <Tab.Screen name="Messages" component={MessagesScreen} options={{ title: 'Messages' }} />
     <Tab.Screen name="Orders" component={OrdersScreen} options={{ title: 'Sales' }} />
     <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Account' }} />
   </Tab.Navigator>

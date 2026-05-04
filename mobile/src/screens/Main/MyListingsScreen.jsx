@@ -4,6 +4,44 @@ import apiService from '../../utils/apiService';
 import { getImageUrl } from '../../utils/api';
 import { COLORS } from '../../theme/colors';
 
+const ListingItem = ({ item, navigation, handleMarkAsSold, handleDelete }) => {
+  const [imageError, setImageError] = useState(false);
+  const imageUrl = getImageUrl(item.photos?.[0]);
+
+  return (
+    <View style={styles.card}>
+      <Image 
+        source={{ uri: imageError ? 'https://via.placeholder.com/150?text=No+Image' : imageUrl }} 
+        style={styles.thumbnail} 
+        onError={() => setImageError(true)}
+      />
+      <View style={styles.info}>
+        <View style={styles.titleRow}>
+          <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
+          <View style={[styles.statusBadge, item.status === 'sold' ? styles.soldBadge : null]}>
+            <Text style={styles.statusText}>{item.status}</Text>
+          </View>
+        </View>
+        <Text style={styles.price}>Rs. {item.price?.toLocaleString()}</Text>
+        
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('EditListing', { listing: item })}>
+            <Text style={styles.actionText}>Edit</Text>
+          </TouchableOpacity>
+          {item.status !== 'sold' && (
+            <TouchableOpacity style={[styles.actionBtn, styles.soldBtn]} onPress={() => handleMarkAsSold(item._id)}>
+              <Text style={styles.soldBtnText}>Mark as Sold</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item._id)}>
+            <Text style={styles.deleteBtnText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+};
+
 const MyListingsScreen = ({ navigation }) => {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,35 +94,12 @@ const MyListingsScreen = ({ navigation }) => {
   };
 
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <Image 
-        source={{ uri: getImageUrl(item.photos?.[0]) }} 
-        style={styles.thumbnail} 
-      />
-      <View style={styles.info}>
-        <View style={styles.titleRow}>
-          <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
-          <View style={[styles.statusBadge, item.status === 'sold' ? styles.soldBadge : null]}>
-            <Text style={styles.statusText}>{item.status}</Text>
-          </View>
-        </View>
-        <Text style={styles.price}>Rs. {item.price.toLocaleString()}</Text>
-        
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('EditListing', { listing: item })}>
-            <Text style={styles.actionText}>Edit</Text>
-          </TouchableOpacity>
-          {item.status !== 'sold' && (
-            <TouchableOpacity style={[styles.actionBtn, styles.soldBtn]} onPress={() => handleMarkAsSold(item._id)}>
-              <Text style={styles.soldBtnText}>Mark as Sold</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDelete(item._id)}>
-            <Text style={styles.deleteBtnText}>Delete</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
+    <ListingItem 
+      item={item} 
+      navigation={navigation} 
+      handleMarkAsSold={handleMarkAsSold} 
+      handleDelete={handleDelete} 
+    />
   );
 
   if (loading) return <ActivityIndicator style={styles.loader} color={COLORS.secondary} />;

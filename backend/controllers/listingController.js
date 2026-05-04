@@ -17,6 +17,7 @@ exports.createListing = async (req, res) => {
 
     if (req.files && req.files.length > 0) {
       listingData.photos = req.files.map(file => file.path.replace(/\\/g, '/'));
+      console.log('✅ Photos uploaded to Cloudinary:', listingData.photos);
     }
 
     const listing = await Listing.create(listingData);
@@ -90,6 +91,7 @@ exports.updateListing = async (req, res) => {
     const updateData = { ...req.body };
     if (req.files && req.files.length > 0) {
       updateData.photos = req.files.map(file => file.path.replace(/\\/g, '/'));
+      console.log('✅ Photos updated on Cloudinary:', updateData.photos);
     }
 
     listing = await Listing.findByIdAndUpdate(req.params.id, updateData, {

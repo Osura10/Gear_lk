@@ -12,11 +12,41 @@ const api = axios.create({
 export const IMAGE_URL = `${BASE_URL}/`;
 
 export const getImageUrl = (path) => {
-  const defaultImage = process.env.EXPO_PUBLIC_DEFAULT_IMAGE_URL || 'https://via.placeholder.com/150';
+  const defaultImage = process.env.EXPO_PUBLIC_DEFAULT_IMAGE_URL || 'https://via.placeholder.com/300?text=GearLK';
+  
   if (!path) return defaultImage;
-  if (path.startsWith('http') || path.startsWith('file://') || path.startsWith('content://')) return path;
-  const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-  return `${BASE_URL}/${cleanPath}`;
+  
+  // Clean path of any whitespace
+  const cleanStr = path.trim();
+  
+  // If it's already a full URL (Cloudinary or other)
+  if (cleanStr.startsWith('http')) {
+    return cleanStr;
+  }
+
+  // Handle local mobile paths
+  if (cleanStr.startsWith('file://') || cleanStr.startsWith('content://')) {
+    return cleanStr;
+  }
+  
+  // Normalize slashes (especially for paths from Windows local dev)
+  let normalizedPath = cleanStr.replace(/\\/g, '/');
+  
+  // If the path is an absolute Windows path (e.g., C:/Users/...), extract the relative part
+  if (normalizedPath.includes(':/') && !normalizedPath.startsWith('http')) {
+    const parts = normalizedPath.split('uploads/');
+    if (parts.length > 1) {
+      normalizedPath = 'uploads/' + parts[1];
+    }
+  }
+
+  // Remove leading slash if present to avoid double slashes
+  const cleanPath = normalizedPath.startsWith('/') ? normalizedPath.substring(1) : normalizedPath;
+  
+  // Return absolute URL
+  // Ensure BASE_URL doesn't end with slash and cleanPath doesn't start with one
+  const baseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+  return `${baseUrl}/${cleanPath}`;
 };
 
 // Add a request interceptor to include the auth token

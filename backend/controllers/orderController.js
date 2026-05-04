@@ -12,6 +12,9 @@ exports.checkout = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Cart is empty' });
     }
 
+    const { message, voucherCode } = req.body;
+    const voucherImage = req.file ? req.file.path.replace(/\\/g, '/') : null;
+
     const orders = [];
     for (const item of cart.items) {
       const order = await Order.create({
@@ -19,7 +22,10 @@ exports.checkout = async (req, res) => {
         buyer: req.user._id,
         seller: item.listing.seller,
         totalPrice: item.listing.price * item.quantity,
-        message: req.body.message || 'I am interested in this item.',
+        message: message || '',
+        voucherCode: voucherCode || (cart.appliedVoucher ? cart.appliedVoucher.code : null),
+        voucherImage,
+        note: item.note,
       });
       orders.push(order);
     }

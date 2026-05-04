@@ -52,10 +52,9 @@ app.use('/api/deals', require('./routes/dealRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/favorites', require('./routes/favoriteRoutes'));
-app.use('/api/messages', require('./routes/messageRoutes'));
-app.use('/api/conversations', require('./routes/conversationRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/stores', require('./routes/storeRoutes'));
+app.use('/api/vouchers', require('./routes/voucherRoutes'));
 
 // Basic error handler
 app.use((err, req, res, next) => {

@@ -5,7 +5,41 @@ import apiService from '../../utils/apiService';
 import { getImageUrl } from '../../utils/api';
 import { COLORS } from '../../theme/colors';
 import { AuthContext } from '../../context/AuthContext';
-import { DISTRICTS, CATEGORIES, CONDITIONS } from '../../utils/constants';
+const DISTRICTS = ['Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya', 'Galle', 'Matara', 'Hambantota', 'Jaffna', 'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu', 'Batticaloa', 'Ampara', 'Trincomalee', 'Kurunegala', 'Puttalam', 'Anuradhapura', 'Polonnaruwa', 'Badulla', 'Moneragala', 'Ratnapura', 'Kegalle'];
+const CATEGORIES = ['Guitars', 'Drums', 'Keyboards', 'Violins', 'Amps', 'Accessories', 'Wind Instruments', 'Other'];
+
+const ListingCard = ({ item, navigation }) => {
+  const [imageError, setImageError] = useState(false);
+  const imageUrl = getImageUrl(item.photos?.[0]);
+
+  return (
+    <TouchableOpacity 
+      style={styles.card}
+      onPress={() => navigation.navigate('InstrumentDetails', { id: item._id })}
+      activeOpacity={0.9}
+    >
+      <View style={styles.imageContainer}>
+        <Image 
+          source={{ uri: imageError ? 'https://via.placeholder.com/300?text=No+Image+Available' : imageUrl }} 
+          style={styles.image} 
+          onError={() => setImageError(true)}
+        />
+        <View style={styles.conditionBadge}>
+          <Text style={styles.conditionText}>{item.condition}</Text>
+        </View>
+      </View>
+      
+      <View style={styles.cardContent}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.brandText}>{item.brand}</Text>
+          <Text style={styles.districtText}>{item.district}</Text>
+        </View>
+        <Text style={styles.listingTitle} numberOfLines={1}>{item.title}</Text>
+        <Text style={styles.priceText}>Rs. {item.price?.toLocaleString()}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 const BuyerHomeScreen = ({ navigation }) => {
   const [listings, setListings] = useState([]);
@@ -46,30 +80,7 @@ const BuyerHomeScreen = ({ navigation }) => {
   };
 
   const renderListing = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.card}
-      onPress={() => navigation.navigate('InstrumentDetails', { id: item._id })}
-      activeOpacity={0.9}
-    >
-      <View style={styles.imageContainer}>
-        <Image 
-          source={{ uri: getImageUrl(item.photos?.[0]) }} 
-          style={styles.image} 
-        />
-        <View style={styles.conditionBadge}>
-          <Text style={styles.conditionText}>{item.condition}</Text>
-        </View>
-      </View>
-      
-      <View style={styles.cardContent}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.brandText}>{item.brand}</Text>
-          <Text style={styles.districtText}>{item.district}</Text>
-        </View>
-        <Text style={styles.listingTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.priceText}>Rs. {item.price.toLocaleString()}</Text>
-      </View>
-    </TouchableOpacity>
+    <ListingCard item={item} navigation={navigation} />
   );
 
   return (

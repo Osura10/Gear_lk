@@ -1,4 +1,4 @@
-import api from './api';
+import api, { getImageUrl } from './api';
 
 // Auth Services
 export const registerUser = (userData) => api.post('/auth/register', userData);
@@ -20,7 +20,9 @@ export const removeFavorite = (id) => api.delete(`/favorites/${id}`);
 
 // Order Services
 export const createOrder = (orderData) => api.post('/orders', orderData);
-export const checkout = (message) => api.post('/orders/checkout', { message });
+export const checkout = (orderData) => api.post('/orders/checkout', orderData, {
+  headers: { 'Content-Type': 'multipart/form-data' }
+});
 export const getMyOrders = () => api.get('/orders/my-orders');
 export const getIncomingOrders = () => api.get('/orders/incoming');
 export const updateOrderStatus = (id, status) => api.put(`/orders/${id}/status`, { status });
@@ -33,15 +35,22 @@ export const deleteReview = (id) => api.delete(`/reviews/${id}`);
 
 // Cart Services
 export const getCart = () => api.get('/cart');
-export const addToCart = (listingId, quantity) => api.post('/cart/add', { listingId, quantity });
+export const addToCart = (listingId, quantity = 1) => api.post('/cart/add', { listingId, quantity });
+export const updateCartItem = (listingId, data) => api.put(`/cart/item/${listingId}`, data);
 export const removeFromCart = (listingId) => api.delete(`/cart/remove/${listingId}`);
 export const clearCart = () => api.delete('/cart/clear');
+export const applyVoucher = (code) => api.post('/cart/apply-voucher', { code });
+export const removeVoucher = () => api.delete('/cart/remove-voucher');
 
-// Messaging Services
-export const startConversation = (sellerId, listingId) => api.post('/conversations/start', { sellerId, listingId });
-export const getConversations = () => api.get('/conversations');
-export const getMessages = (conversationId) => api.get(`/messages/${conversationId}`);
-export const sendMessage = (conversationId, text) => api.post(`/messages/${conversationId}`, { text });
+// Voucher Services (Seller/Admin)
+export const getVouchers = () => api.get('/vouchers');
+export const getPublicVouchers = () => api.get('/vouchers/public');
+export const getVoucherById = (id) => api.get(`/vouchers/${id}`);
+export const createVoucher = (data) => api.post('/vouchers', data);
+export const updateVoucher = (id, data) => api.put(`/vouchers/${id}`, data);
+export const deleteVoucher = (id) => api.delete(`/vouchers/${id}`);
+
+
 
 export default {
   registerUser,
@@ -67,10 +76,16 @@ export default {
   deleteReview,
   getCart,
   addToCart,
+  updateCartItem,
   removeFromCart,
   clearCart,
-  startConversation,
-  getConversations,
-  getMessages,
-  sendMessage,
+  applyVoucher,
+  removeVoucher,
+  getVouchers,
+  getPublicVouchers,
+  getVoucherById,
+  createVoucher,
+  updateVoucher,
+  deleteVoucher,
+  getImageUrl,
 };
